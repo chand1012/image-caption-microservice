@@ -1,5 +1,7 @@
 # Use the official Python image
-FROM python:3.9-slim
+FROM python:3.12-slim
+
+LABEL org.opencontainers.image.source=https://github.com/chand1012/image-caption-microservice
 
 # Install necessary system dependencies
 RUN apt-get update && \
