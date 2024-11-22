@@ -100,9 +100,19 @@ def get_max_font_size_and_wrapped_text(text, font_path, max_width, max_height):
     best_size = min_size
     best_lines = []
 
+    # the best size is the largest size that fits within the box
+
     while min_size <= max_size:
         fontsize = (min_size + max_size) // 2
         font = ImageFont.truetype(font_path, fontsize)
+        
+        # Ensure no single word exceeds max_width
+        words = text.split()
+        max_word_width = max(font.getbbox(word)[2] - font.getbbox(word)[0] for word in words)
+        if max_word_width > max_width:
+            max_size = fontsize - 1
+            continue
+
         lines = wrap_text(text, font, max_width)
         line_height = get_line_height(font)
         total_height = line_height * len(lines)
@@ -159,25 +169,17 @@ def add_captions(request: ImageRequest):
                     raise HTTPException(status_code=400, detail=f"Text exceeds box height at specified fontsize {fontsize}.")
 
             # Set default colors based on font
-            if box.color:
-                fill_color = box.color
-            else:
-                fill_color = "black" if font_name == "arial" else "white"
-
-            if box.border:
-                stroke_color = box.border
-            else:
-                stroke_color = "black" if font_name == "impact" else None
+            fill_color = box.color if box.color else ("black" if font_name == "arial" else "white")
+            stroke_color = box.border if box.border else ("black" if font_name == "impact" else None)
 
             # Determine stroke width
-            if stroke_color and stroke_color != fill_color:
-                stroke_width = max(1, fontsize // 15)  # Adjust stroke width as needed
-            else:
-                stroke_width = 0
+            stroke_width = max(1, fontsize // 15) if stroke_color and stroke_color != fill_color else 0
 
-            # Draw the text
+            # Calculate total text height
             line_height = get_line_height(font)
-            current_y = box.y
+            total_text_height = line_height * len(lines)
+            # Calculate starting y to center text vertically
+            current_y = box.y + (box.h - total_text_height) // 2
 
             for line in lines:
                 draw.text(
