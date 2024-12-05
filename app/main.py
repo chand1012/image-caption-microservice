@@ -182,8 +182,12 @@ def add_captions(request: ImageRequest):
             current_y = box.y + (box.h - total_text_height) // 2
 
             for line in lines:
+                # Calculate the width of the line
+                line_width = font.getbbox(line)[2] - font.getbbox(line)[0]
+                # Calculate x to center the line within the box
+                line_x = box.x + (box.w - line_width) // 2
                 draw.text(
-                    (box.x, current_y),
+                    (line_x, current_y),
                     line,
                     font=font,
                     fill=fill_color,
