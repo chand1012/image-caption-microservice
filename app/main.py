@@ -27,6 +27,7 @@ class ImageRequest(BaseModel):
     img: str = Field(..., description="URL or Base64-encoded PNG or JPG image to edit")
     boxes: List[Box]
     image_format: Optional[str] = None
+    watermark: Optional[str] = None  # Add this line
 
     @validator('img')
     def validate_img(cls, v):
@@ -195,6 +196,49 @@ def add_captions(request: ImageRequest):
                     stroke_fill=stroke_color
                 )
                 current_y += line_height
+
+        # Add the following code after processing boxes
+        if request.watermark:
+            # Create a transparent overlay
+            overlay = Image.new('RGBA', image.size, (255, 255, 255, 0))
+            draw = ImageDraw.Draw(overlay)
+            watermark_text = request.watermark
+            desired_text_height = image.height * 0.03  # 3% of the image height
+
+            font_name = "arial"
+            font_path = f"/usr/share/fonts/truetype/{font_name}/{font_name}.ttf"
+            if not os.path.isfile(font_path):
+                raise HTTPException(status_code=500, detail=f"Font file not found: {font_path}")
+
+            # Find the font size that makes the text height approximately desired_text_height
+            font_size = 1
+            while True:
+                font = ImageFont.truetype(font_path, font_size)
+                bbox = font.getbbox(watermark_text)
+                text_height = bbox[3] - bbox[1]
+                if text_height >= desired_text_height:
+                    break
+                font_size += 1
+
+            text_width = bbox[2] - bbox[0]
+            position = (10, image.height - text_height - 12)  # Bottom-left corner with padding
+
+            # Set fill and stroke colors with 70% opacity
+            fill_color = (255, 255, 255, 180)   # White with 70% opacity
+            stroke_color = (0, 0, 0, 180)       # Black with 70% opacity
+
+            # Draw the watermark on the overlay
+            draw.text(
+                position,
+                watermark_text,
+                font=font,
+                fill=fill_color,
+                stroke_width=3,
+                stroke_fill=stroke_color
+            )
+
+            # Composite the overlay onto the original image
+            image = Image.alpha_composite(image.convert('RGBA'), overlay)
 
         output_format = request.image_format or f"b64/{input_format}"
 
