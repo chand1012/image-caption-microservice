@@ -221,7 +221,7 @@ def add_captions(request: ImageRequest):
                 font_size += 1
 
             text_width = bbox[2] - bbox[0]
-            position = (20, image.height - text_height - 20)  # Bottom-left corner with padding
+            position = (round(image.width * 0.02), image.height - text_height - round(image.height * 0.02))  # Bottom-left corner with padding
 
             # Set fill and stroke colors with 70% opacity
             fill_color = (255, 255, 255, 180)   # White with 70% opacity
