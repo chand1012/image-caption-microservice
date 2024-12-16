@@ -223,9 +223,9 @@ def add_captions(request: ImageRequest):
             text_width = bbox[2] - bbox[0]
             position = (round(image.width * 0.02), image.height - text_height - round(image.height * 0.02))  # Bottom-left corner with padding
 
-            # Set fill and stroke colors with 70% opacity
-            fill_color = (255, 255, 255, 180)   # White with 70% opacity
-            stroke_color = (0, 0, 0, 180)       # Black with 70% opacity
+            # Set fill and stroke colors with 50% opacity
+            fill_color = (255, 255, 255, 128)   # White with 50% opacity
+            stroke_color = (0, 0, 0, 128)       # Black with 50% opacity
 
             # Draw the watermark on the overlay
             draw.text(
